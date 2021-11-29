@@ -1,3 +1,3 @@
 {
-    "python.pythonPath": "C:\\Users\\byeungchun\\envs\\quant-pkpd\\Scripts\\python.exe"
+  "python.pythonPath": "C:\\Users\\${env:USERNAME}\\envs\\quant-pkpd\\Scripts\\python.exe"
 }
