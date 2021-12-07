@@ -53,7 +53,20 @@ def exec_pk_nca(datafile: str, params: dict):
         # STEP 1 - find best down slope in observation
         best_down_regression = _obs_find_best_slope(dose_rec, obs_rec)
 
+        # STEP 2 - check best down regression result
+        best_down_regression = _check_best_slope_result(
+            best_down_regression,
+            obs_rec,
+            params
+        )
+
     return analysis_res
+
+
+def _check_best_slope_result(best_down_regression: dict, obs_rec: dict, params: dict):
+    """ check best slope regression result and apply detSlope if the result is not good"""
+
+    pass
 
 
 def _obs_find_best_slope(
@@ -94,7 +107,7 @@ def _obs_find_best_slope(
             ols_res[i] = _exec_regression(obs_ts.loc[i:idx_end+1])
         best_res = _find_best_rsqrt_more_x_values(ols_res, rsqrt_tolerance)
 
-        if len(best_res) != 0:
+        if len(best_res) == 0:
             raise RuntimeError(
                 'cannot find best down slope regression. check observation event record data')
         res = ObsDownSlopeRegression(**best_res)
