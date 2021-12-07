@@ -66,7 +66,7 @@ def exec_pk_nca(datafile: str, params: dict):
 def _check_best_slope_result(best_down_regression: dict, obs_rec: dict, params: dict):
     """ check best slope regression result and apply detSlope if the result is not good"""
 
-    pass
+    return best_down_regression
 
 
 def _obs_find_best_slope(
