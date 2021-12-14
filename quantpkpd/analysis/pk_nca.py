@@ -60,12 +60,14 @@ def exec_pk_nca(datafile: str, params: dict):
             params
         )
 
+        analysis_res[_id] = best_down_regression
     return analysis_res
 
 
 def _check_best_slope_result(best_down_regression: dict, obs_rec: dict, params: dict):
     """ check best slope regression result and apply detSlope if the result is not good"""
 
+    # TODO: sNCA.R # 100 - 104
     return best_down_regression
 
 
@@ -83,7 +85,7 @@ def _obs_find_best_slope(
 
     """
 
-    obs_ts = pd.DataFrame(obs_rec.event_concentration_ts)
+    obs_ts = pd.DataFrame(obs_rec.event_concentration_ts['xy1'])
     obs_ts = obs_ts.loc[obs_ts.DV.dropna().index]  # remove None values
     obs_ts = obs_ts[obs_ts.DV.apply(lambda x: x != 0)]
     obs_ts = obs_ts.sort_values('TIME').reset_index(drop=True)

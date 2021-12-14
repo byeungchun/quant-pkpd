@@ -1,6 +1,7 @@
 """ PK/PD record file handler """
 import os
 import pandas as pd
+import numpy as np
 
 from quantpkpd.model.record import (
     Patient,
@@ -93,18 +94,19 @@ def _extract_dosing_obs_record(df_all: pd.DataFrame, rec_params: dict):
         if sum(_df_dose_pid['AMT']) <= 0 or sum(_df_obs_pid['DV']) <= 0:
             raise ValueError(
                 'Dose, observation value is not proper dosing value')
-
+        _adm_mtd = DoseAdmMtd(rec_params['dose_admin_method'])
         _event_dose_ts = _df_dose_pid[['TIME', 'AMT']].to_dict(orient='list')
         dose_records[_id] = DoseRecord(
             pid=_id,
             dose_amt=sum(_df_dose_pid['AMT']),
-            adm_mtd=DoseAdmMtd(rec_params['dose_admin_method']),
+            adm_mtd=_adm_mtd,
             duration=sum(_df_dose_pid['TIME']),
             event_dose_ts=_event_dose_ts
             # TODO: add other parameter (ie. time_unit, dose_unit, mol_weight)
         )
 
-        _event_obs_ts = _df_obs_pid[['TIME', 'DV']].to_dict(orient='list')
+        # _event_obs_ts = _df_obs_pid[['TIME', 'DV']].to_dict(orient='list')
+        _event_obs_ts = _generate_obs_ts(_df_obs_pid, _adm_mtd)
         obs_records[_id] = ObservationRecord(
             pid=_id,
             event_concentration_ts=_event_obs_ts
@@ -112,3 +114,32 @@ def _extract_dosing_obs_record(df_all: pd.DataFrame, rec_params: dict):
         )
 
     return dose_records, obs_records
+
+
+def _generate_obs_ts(df: pd.DataFrame, adm_mtd: DoseAdmMtd) -> dict:
+
+    raw = df[['TIME', 'DV']].to_dict(orient='list')
+    tail_none_zero = df[:max(df[df['DV'] > 0].index) +
+                        1][['TIME', 'DV']].to_dict(orient='list')
+    all_none_zero = df[df['DV'] != 0][['TIME', 'DV']].to_dict(orient='list')
+
+    if adm_mtd == DoseAdmMtd.BOLUS:
+        if df['DV'][0] > df['DV'][1] and df['DV'][1] > 0:
+            # C0 = exp(-x[1]*(log(y[2]) - log(y[1]))/(x[2] - x[1]) + log(y[1]))
+            c0 = np.exp(-df['TIME'][0] * (np.log(df['DV'][1]) - np.log(df['DV'][0])
+                                          ) / (df['TIME'][1] - df['TIME'][0]) + np.log(df['DV'][0]))
+        else:
+            c0 = df.loc[df[df['DV'] > 0]['TIME'].idxmin(), 'DV']
+        raw2 = {'TIME': [0.0] + raw['TIME'], 'DV': [c0] + raw['DV']}
+        tail_none_zero2 = {
+            'TIME': [0.0] + tail_none_zero['TIME'], 'DV': [c0] + tail_none_zero['DV']}
+    else:
+        if len([df['TIME'] == 0]) == 0:
+            raw2 = {'TIME': [0.0] + raw['TIME'], 'DV': [0.0] + raw['DV']}
+            tail_none_zero2 = {
+                'TIME': [0.0] + tail_none_zero['TIME'], 'DV': [0.0] + tail_none_zero['DV']}
+        else:
+            raw2 = raw.copy()
+            tail_none_zero2 = tail_none_zero.copy()
+
+    return {'xy': raw, 'xy0': tail_none_zero, 'xy1': all_none_zero, 'xy2': raw2, 'xy3': tail_none_zero2}
