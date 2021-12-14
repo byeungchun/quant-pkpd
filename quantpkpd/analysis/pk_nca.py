@@ -19,7 +19,7 @@ from quantpkpd.util.nonmen_file_handler import (
 
 
 def exec_pk_nca(datafile: str, params: dict):
-    """ main function to execute PK NCA analysis 
+    """ main function to execute PK NCA analysis
 
         Args:
             datafile (str): dosing, observation data
@@ -60,8 +60,26 @@ def exec_pk_nca(datafile: str, params: dict):
             params
         )
 
+        # STEP 3 - check the result and execute det_slope function if it needs
+        if params['r_sqrt_adj'] > 0:
+            xy1 = obs_rec.event_concentration_ts['xy1']
+            if best_down_regression.lambda_z_cnt < 2:
+                best_down_regression = _find_det_slope(xy1)
+            elif best_down_regression.r_sqrt_adj < params['r_sqrt_adj']:
+                best_down_regression = _find_det_slope(
+                    xy1,
+                    xy1['TIME'].index(best_down_regression.lambda_z_lower_t),
+                    xy1['TIME'].index(best_down_regression.lambda_z_upper_t)
+                )
         analysis_res[_id] = best_down_regression
     return analysis_res
+
+
+def _find_det_slope(obs_ts: dict, s1: int = 0, s2: int = 0):
+    """ find det_slope """
+
+    # TODO: DetSlope.R
+    return ObsDownSlopeRegression
 
 
 def _check_best_slope_result(best_down_regression: dict, obs_rec: dict, params: dict):

@@ -117,6 +117,7 @@ def _extract_dosing_obs_record(df_all: pd.DataFrame, rec_params: dict):
 
 
 def _generate_obs_ts(df: pd.DataFrame, adm_mtd: DoseAdmMtd) -> dict:
+    """ generate observation time series """
 
     raw = df[['TIME', 'DV']].to_dict(orient='list')
     tail_none_zero = df[:max(df[df['DV'] > 0].index) +
@@ -125,7 +126,6 @@ def _generate_obs_ts(df: pd.DataFrame, adm_mtd: DoseAdmMtd) -> dict:
 
     if adm_mtd == DoseAdmMtd.BOLUS:
         if df['DV'][0] > df['DV'][1] and df['DV'][1] > 0:
-            # C0 = exp(-x[1]*(log(y[2]) - log(y[1]))/(x[2] - x[1]) + log(y[1]))
             c0 = np.exp(-df['TIME'][0] * (np.log(df['DV'][1]) - np.log(df['DV'][0])
                                           ) / (df['TIME'][1] - df['TIME'][0]) + np.log(df['DV'][0]))
         else:

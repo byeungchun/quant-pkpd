@@ -30,6 +30,6 @@ def test_exec_pk_nca():
     assert is_exception
 
     exec_pk_nca('test/unit_tests/files/theoph.csv',
-                {'dose_admin_method': 1, 'datafile_type': 'nonmen'})
+                {'dose_admin_method': 1, 'datafile_type': 'nonmen', 'r_sqrt_adj': 0.9})
 
     assert True

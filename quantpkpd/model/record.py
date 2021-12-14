@@ -3,7 +3,7 @@ import numpy as np
 from enum import Enum
 from pydantic.dataclasses import dataclass
 
-REQ_INPUT_PARAMS = ['datafile_type']
+REQ_INPUT_PARAMS = ['datafile_type', 'r_sqrt_adj']
 
 NONMEN_REQ_COLS = ['#ID', 'TIME', 'DV', 'AMT']
 NONMEN_PATIENT_MAPPER = {'#ID': 'pid', 'SEX': 'gender',
